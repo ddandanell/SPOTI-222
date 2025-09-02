@@ -3,9 +3,10 @@
 // The Client Secret is NOT included here as it is not used in the secure PKCE flow for frontend applications.
 export const CLIENT_ID = "90e095ee1b85480ab87a6a560005b0be";
 
-// This must match the Redirect URI set in your Spotify Developer Dashboard for the production app.
-// It now points to a dedicated callback handler to ensure robust authentication.
-export const REDIRECT_URI = "https://spoti-222.vercel.app/callback.html";
+// This must exactly match the Redirect URI set in your Spotify Developer Dashboard.
+// Based on your settings, we are setting it to '.../Callback' without the .html extension.
+// Vercel typically serves 'Callback.html' from this URL automatically.
+export const REDIRECT_URI = new URL('Callback', window.location.origin).href;
 
 export const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
 export const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";

@@ -24,7 +24,7 @@
 
     <script>
         const CLIENT_ID = "90e095ee1b85480ab87a6a560005b0be";
-        const REDIRECT_URI = new URL('callback.html', window.location.href).href;
+        const REDIRECT_URI = new URL('Callback', window.location.origin).href;
         const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 
         const messageEl = document.getElementById('message');

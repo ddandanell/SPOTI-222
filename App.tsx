@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import Login from './components/Login';
 import PlaylistGenerator from './components/PlaylistGenerator';
+import Callback from './components/Callback';
 
-const AppContent: React.FC = () => {
+// This component manages the main application view based on authentication state
+const MainApp: React.FC = () => {
   const [token, setToken] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -15,7 +17,6 @@ const AppContent: React.FC = () => {
         
         if (tokenInStorage && tokenExpiry && new Date().getTime() < parseInt(tokenExpiry)) {
             setToken(tokenInStorage);
-            navigate('/'); // Ensure user is on the main page after login
         } else {
             // Token is expired or not present, clear localStorage to ensure a clean state
             localStorage.removeItem('spotify_access_token');
@@ -48,7 +49,7 @@ const AppContent: React.FC = () => {
         window.removeEventListener('storage', handleStorageChange);
     };
 
-  }, [navigate]);
+  }, []);
 
   const handleLogout = () => {
     setToken(null);
@@ -58,23 +59,20 @@ const AppContent: React.FC = () => {
     navigate('/');
   };
 
-  return (
-    <div className="min-h-screen bg-zinc-900 text-white font-sans flex flex-col items-center justify-center p-4">
-      <Routes>
-        <Route path="/" element={
-          token ? <PlaylistGenerator token={token} onLogout={handleLogout} /> : <Login />
-        } />
-      </Routes>
-    </div>
-  );
+  return token ? <PlaylistGenerator token={token} onLogout={handleLogout} /> : <Login />;
 };
 
 
 const App: React.FC = () => {
     return (
-        <HashRouter>
-            <AppContent />
-        </HashRouter>
+        <BrowserRouter>
+            <div className="min-h-screen bg-zinc-900 text-white font-sans flex flex-col items-center justify-center p-4">
+                <Routes>
+                    <Route path="/" element={<MainApp />} />
+                    <Route path="/Callback" element={<Callback />} />
+                </Routes>
+            </div>
+        </BrowserRouter>
     )
 }
 
