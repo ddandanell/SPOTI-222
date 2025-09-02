@@ -1,0 +1,5 @@
+{
+  "name": "Spotify Playlist Generator",
+  "description": "A web application that generates a Spotify playlist from a list of song titles. Users log in with their Spotify account, paste a list of songs, and the app automatically finds the tracks and creates a new playlist.",
+  "requestFramePermissions": []
+}

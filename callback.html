@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Authenticating with Spotify...</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #121212; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { text-align: center; padding: 20px; }
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #1DB954; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        p { font-size: 1.1em; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loader">
+            <div class="spinner"></div>
+            <p>Finalizing connection with Spotify...</p>
+        </div>
+        <div id="message" style="display: none;"></div>
+    </div>
+
+    <script>
+        const CLIENT_ID = "90e095ee1b85480ab87a6a560005b0be";
+        const REDIRECT_URI = "https://spotify-playliste.vercel.app/callback.html";
+        const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
+
+        const messageEl = document.getElementById('message');
+        const loaderEl = document.getElementById('loader');
+
+        function showMessage(text, isError = false) {
+            loaderEl.style.display = 'none';
+            messageEl.textContent = text;
+            if (isError) {
+                messageEl.classList.add('error');
+            }
+            messageEl.style.display = 'block';
+        }
+
+        async function handleCallback() {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            const error = params.get('error');
+
+            if (error) {
+                showMessage(`Login failed: ${error}. You may close this window.`, true);
+                return;
+            }
+
+            const storedVerifier = localStorage.getItem('spotify_pkce_verifier');
+            if (!code || !storedVerifier) {
+                showMessage('Authentication failed. Missing required data. Please try logging in again.', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(TOKEN_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        client_id: CLIENT_ID,
+                        grant_type: 'authorization_code',
+                        code,
+                        redirect_uri: REDIRECT_URI,
+                        code_verifier: storedVerifier,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error_description || 'Failed to exchange code for token.');
+                }
+
+                const data = await response.json();
+                
+                const expiryTime = new Date().getTime() + data.expires_in * 1000;
+                localStorage.setItem('spotify_access_token', data.access_token);
+                localStorage.setItem('spotify_token_expiry', expiryTime.toString());
+                localStorage.setItem('spotify_refresh_token', data.refresh_token);
+                
+                localStorage.removeItem('spotify_pkce_verifier');
+
+                showMessage('Success! This window will now close.');
+                window.close();
+
+            } catch (err) {
+                const errorMessage = err instanceof Error ? err.message : String(err);
+                showMessage(`An error occurred: ${errorMessage}. Please try again.`, true);
+            }
+        }
+
+        handleCallback();
+    </script>
+</body>
+</html>
